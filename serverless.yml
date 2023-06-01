@@ -1,0 +1,87 @@
+service: '${file(./env.config.yml):feature}'
+frameworkVersion: '3'
+configValidationMode: error
+plugins:
+  - serverless-plugin-conditional-functions  
+  - serverless-plugin-utils
+custom:
+  envSuffixOptions:
+    DEV: D
+    QA: Q
+    UAT: U
+    DBG: G
+    PROD: P
+    DRE: R
+  envSuffix: ${switch(${self:provider.stage}, ${self:custom.envSuffixOptions})}
+provider:
+  name: aws
+  stage: '${file(./env.config.yml):environment}'
+  stackName: '${file(./env.config.yml):feature}-${file(./env.config.yml):environment}'
+  runtime: dotnet6
+  memorySize: 1024
+  logRetentionInDays: ${file(./env.config.yml):logRetentionDays}
+  timeout: 900
+  versionFunctions: false
+  tracing:
+    lambda: false
+  vpc:
+    securityGroupIds:
+      - '${file(./env.config.yml):securityGroupId}'
+    subnetIds:
+      - '${file(./env.config.yml):subnetId1}'
+      - '${file(./env.config.yml):subnetId2}'
+  deploymentPrefix: poc
+  deploymentBucket:
+    name: '${file(./env.config.yml):s3Statebucket}'
+    maxPreviousDeploymentArtifacts: '${file(./env.config.yml):maxPreviousDeploymentArtifacts}'
+    tags:
+      Application ID: POC
+      Budget Manager: GBST
+      Project: Aspire
+  iam:
+    role: defaultRole
+resources:
+  Resources:
+    defaultRole:
+      Type: 'AWS::IAM::Role'
+      Properties:
+        RoleName: 'IAM-Lambda-${self:custom.envSuffix}POC'
+        AssumeRolePolicyDocument:
+          Version: '2012-10-17'
+          Statement:
+            - Effect: Allow
+              Principal:
+                Service:
+                  - lambda.amazonaws.com
+              Action: 'sts:AssumeRole'
+        Policies:
+          - PolicyName: 'IAM-Lambda-${self:custom.envSuffix}POC'
+            PolicyDocument:
+              Version: '2012-10-17'
+              Statement:
+                - Effect: Allow
+                  Action:
+                    - 'logs:CreateLogGroup'
+                    - 'logs:CreateLogStream'
+                    - 'logs:PutLogEvents'
+                  Resource:
+                    - '*'
+                - Effect: Allow
+                  Action:
+                    - 'ec2:DescribeNetworkInterfaces'
+                    - 'ec2:CreateNetworkInterface'
+                    - 'ec2:DeleteNetworkInterface'
+                    - 'ec2:DescribeInstances'
+                    - 'ec2:AttachNetworkInterface'
+                  Resource:
+                    - '*'
+                - Effect: Allow
+                  Action:
+                    - 'secretsmanager:GetSecretValue'
+                  Resource:
+                    - '${file(./env.config.yml):secretManagerResource}'
+package:
+  individually: true
+functions:
+  - '${file(./Inbound/Process_Inbound_Msg_Lambda.yml)}'
+  - '${file(./Outbound/Process_Outbound_Msg_Lambda.yml)}'

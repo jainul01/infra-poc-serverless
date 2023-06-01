@@ -1,0 +1,19 @@
+FabricProcessInboundMsgLambda:
+  handler: test_function::Amazon.lambda.core::IntegrationHandler
+  name: ${file(./env.config.yml):regionTag}-INMSGPROCESS-${self:custom.envSuffix}POC
+  description: 'Lambda function for Fabric inbound integration message processing'
+  tags:
+    Automation: None
+    Application ID: POC
+    Budget Manager: GBST
+    Security: Sensitive
+    Name: ${file(./env.config.yml):regionTag}-INMSGPROCESS-${self:custom.envSuffix}POC
+    Role: 'IAM-Lambda-${self:custom.envSuffix}POC'
+    Termination Date: '-'
+    Project: Aspire
+    Line of Business - Primary: GBST - LEGAL
+    Schedule: '-'
+    Environment: ${file(./env.config.yml):environment}
+    Created By: ''
+  package:
+    artifact: Inbound/App_Artifacts/test_function.zip    

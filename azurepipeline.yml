@@ -1,0 +1,19 @@
+name: $(SourceBranchName)$(rev:.r)
+
+trigger:
+  branches:
+    include:
+    - release/*
+
+resources:
+  repositories:
+    - repository: common
+      type: github
+      endpoint: jainul01
+      name: aenetworks-gto/azuredevops-pipeline-templates
+      
+jobs:
+- template: NugetPack-ado.yaml@common
+  parameters:
+      nuspecFilePath: 'Package.nuspec'
+      nugetPackageId: 'infra-poc-serverless'
