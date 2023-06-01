@@ -10,7 +10,7 @@ resources:
     - repository: common
       type: github
       endpoint: jainul01
-      name: aenetworks-gto/azuredevops-pipeline-templates
+      name: jainul01/azuredevops-pipeline-templates
       
 jobs:
 - template: NugetPack-ado.yaml@common
